@@ -208,7 +208,7 @@ export default function Timer() {
 
           <div className="card" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(34,211,238,0.08))', border: '1px solid rgba(99,102,241,0.25)' }}>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: 4 }}>🦁 Leo says:</strong>
+              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: 4 }}>🐦‍⬛ Corvus says:</strong>
               Keep going! Deep work sessions are the key to high-impact output. You're doing great.
             </div>
           </div>

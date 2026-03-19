@@ -472,7 +472,7 @@ textarea.input { resize: vertical; min-height: 90px; }
 .note-card.color-green::before { background: var(--accent-4); }
 .note-card:hover { border-color: var(--border-bright); transform: translateY(-2px); box-shadow: var(--shadow-card); }
 .note-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-.note-preview { font-size: 12px; color: var(--text-secondary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.note-preview { font-size: 12px; color: var(--text-secondary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .note-meta { margin-top: 12px; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
 
 .notes-grid {
@@ -590,7 +590,7 @@ textarea.input { resize: vertical; min-height: 90px; }
   border-radius: var(--radius-lg);
   font-size: 13.5px; line-height: 1.65;
 }
-.msg.leo .msg-bubble {
+.msg.corvus .msg-bubble {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
@@ -607,7 +607,7 @@ textarea.input { resize: vertical; min-height: 90px; }
   display: flex; align-items: center; justify-content: center;
   font-size: 15px;
 }
-.msg.leo .msg-avatar {
+.msg.corvus .msg-avatar {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 .msg.user .msg-avatar {

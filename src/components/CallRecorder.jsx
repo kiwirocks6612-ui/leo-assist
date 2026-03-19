@@ -96,7 +96,7 @@ export default function CallRecorder({ profile }) {
       id: Date.now(), title,
       date: new Date().toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }),
       duration: fmt(elapsed),
-      summary: 'Leo is analysing the transcript to generate a summary…',
+      summary: 'Corvus is analysing the transcript to generate a summary…',
       keyPoints: ['Recording saved', 'Summary generation in progress'],
       transcript: [...transcript]
     }
@@ -107,7 +107,7 @@ export default function CallRecorder({ profile }) {
     setTimeout(() => {
       setCalls(c => c.map(call => call.id === newCall.id ? {
         ...call,
-        summary: `Call recorded for ${elapsed} seconds. Leo successfully transcribed ${transcript.length} phrases. Key action items identified.`,
+        summary: `Call recorded for ${elapsed} seconds. Corvus successfully transcribed ${transcript.length} phrases. Key action items identified.`,
         keyPoints: transcript.slice(0, 3).map(l => `${l.speaker}: "${l.text.slice(0, 50)}…"`)
       } : call))
     }, 3000)
@@ -182,7 +182,7 @@ export default function CallRecorder({ profile }) {
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
                 {activeCall.date} · {activeCall.duration}
               </div>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>🦁 Leo's Summary</div>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>🐦‍⬛ Corvus's Summary</div>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>{activeCall.summary}</p>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>📌 Key Points</div>
               {activeCall.keyPoints.map((kp, i) => (

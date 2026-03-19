@@ -45,8 +45,8 @@ export default function Onboarding({ onComplete }) {
 
       <div className="onboard-card anim-scale-in">
         <div className="onboard-logo">
-          <div className="onboard-logo-icon" aria-hidden="true">🦁</div>
-          <span className="onboard-logo-text">Leo</span>
+          <div className="onboard-logo-icon" aria-hidden="true">🐦‍⬛</div>
+          <span className="onboard-logo-text">Corvus</span>
         </div>
 
         <div
@@ -64,7 +64,7 @@ export default function Onboarding({ onComplete }) {
         {/* ─── Step 0: Name ──────────────────────── */}
         {step === 0 && (
           <div className="onboard-step anim-fade-up">
-            <h1 className="onboard-title">Hi, I'm Leo 👋</h1>
+            <h1 className="onboard-title">Hi, I'm Corvus 👋</h1>
             <p className="onboard-sub">
               Your AI work assistant. I adapt completely to <em>your</em> job, keep you
               organised, and help you stay on top of everything — whoever you are.
@@ -100,7 +100,7 @@ export default function Onboarding({ onComplete }) {
               <span className="text-gradient">What's your role?</span>
             </h2>
             <p className="onboard-sub" style={{ color: '#e2e8f0', fontWeight: 500, marginBottom: 24 }}>
-              Leo tailors news, suggestions, tips, and prompts to your profession.
+              Corvus tailors news, suggestions, tips, and prompts to your profession.
               Don't see your role? Pick <strong style={{ color: '#818cf8' }}>Other</strong> and type it in.
             </p>
 
@@ -194,7 +194,7 @@ export default function Onboarding({ onComplete }) {
                 style={{ flex: 1, justifyContent: 'center' }}
                 onClick={handleFinish}
               >
-                🚀 Launch Leo
+                🚀 Launch Corvus
               </button>
             </div>
           </div>

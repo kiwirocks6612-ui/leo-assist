@@ -10,7 +10,7 @@ import FileOrganizer from './components/FileOrganizer'
 
 const NAV_ITEMS = [
   { id: 'dashboard', emoji: '🏠', label: 'Dashboard' },
-  { id: 'ai', emoji: '🦁', label: 'AI Assistant' },
+  { id: 'ai', emoji: '🐦‍⬛', label: 'AI Assistant' },
   { id: 'timer', emoji: '⏱', label: 'Focus Timer' },
   { id: 'schedule', emoji: '📅', label: 'Schedule' },
   { id: 'notes', emoji: '📝', label: 'Notes' },
@@ -26,10 +26,11 @@ const JOB_EMOJIS = {
 
 export default function App() {
   const [profile, setProfile] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('leo_profile')) } catch { return null }
+    try { return JSON.parse(localStorage.getItem('corvus_profile')) } catch { return null }
   })
   const [page, setPage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [theme, setTheme] = useState(() => localStorage.getItem('corvus_theme') || 'purple')
 
   useEffect(() => {
     if (profile?.accessibility) {
@@ -40,14 +41,19 @@ export default function App() {
     }
   }, [profile])
 
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme)
+    localStorage.setItem('corvus_theme', theme)
+  }, [theme])
+
   function handleOnboardingComplete(p) {
-    localStorage.setItem('leo_profile', JSON.stringify(p))
+    localStorage.setItem('corvus_profile', JSON.stringify(p))
     setProfile(p)
     setPage('dashboard')
   }
 
   function resetProfile() {
-    localStorage.removeItem('leo_profile')
+    localStorage.removeItem('corvus_profile')
     setProfile(null)
   }
 
@@ -73,8 +79,8 @@ export default function App() {
         aria-label="Main navigation"
       >
         <div className="sidebar-logo">
-          <div className="logo-icon" aria-hidden="true">🦁</div>
-          {sidebarOpen && <span className="logo-text">Leo</span>}
+          <div className="logo-icon" aria-hidden="true">🐦‍⬛</div>
+          {sidebarOpen && <span className="logo-text">Corvus</span>}
         </div>
 
         <div className="nav-items" role="list">
@@ -116,6 +122,22 @@ export default function App() {
             <div className="topbar-sub">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
           </div>
           <div className="topbar-right">
+            <div style={{ display: 'flex', gap: '8px', marginRight: '8px', alignItems: 'center' }}>
+              {['purple', 'green', 'rose', 'amber', 'blue'].map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  aria-label={`Theme ${t}`}
+                  title={`Theme ${t}`}
+                  style={{
+                    width: 14, height: 14, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                    background: t === 'purple' ? '#6366f1' : t === 'green' ? '#10b981' : t === 'rose' ? '#f43f5e' : t === 'amber' ? '#f59e0b' : '#3b82f6',
+                    outline: theme === t ? '2px solid var(--text-primary)' : 'none', outlineOffset: 2,
+                    opacity: theme === t ? 1 : 0.6
+                  }}
+                />
+              ))}
+            </div>
             <div className="user-badge" role="status" aria-label={`Logged in as ${profile.name}, ${profile.job}`}>
               <div className="avatar" aria-hidden="true">{profile.name?.[0]?.toUpperCase() || '?'}</div>
               <div>
