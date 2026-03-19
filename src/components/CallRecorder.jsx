@@ -36,6 +36,8 @@ export default function CallRecorder({ profile }) {
   const [transcript, setTranscript] = useState([])
   const [titleDraft, setTitleDraft] = useState('')
   const timerRef = useRef(null)
+  const recognitionRef = useRef(null)
+  const isRecordingRef = useRef(false)
 
   function fmt(s) {
     const m = Math.floor(s / 60)
@@ -45,27 +47,49 @@ export default function CallRecorder({ profile }) {
 
   function startRec() {
     setRecording(true)
+    isRecordingRef.current = true
     setElapsed(0)
     setTranscript([])
     timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000)
-    // Simulate live transcript lines arriving
-    const lines = [
-      { speaker: 'You', text: 'Good afternoon, thanks for joining the call today.' },
-      { speaker: 'Participant', text: 'Thanks! I\'ve been looking forward to this discussion.' },
-      { speaker: 'You', text: 'Let\'s start with a quick overview of the agenda.' },
-      { speaker: 'Participant', text: 'Sounds good. I also have a few questions about the timeline.' },
-      { speaker: 'You', text: 'Of course, we\'ll get to that. First let\'s cover the key objectives.' },
-    ]
-    lines.forEach((line, i) => {
-      setTimeout(() => {
-        setTranscript(t => [...t, line])
-      }, (i + 1) * 4000)
-    })
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setTranscript([{ speaker: 'System', text: 'Speech Recognition is not supported in your browser (try Chrome/Edge/Safari).' }])
+      return
+    }
+
+    const rec = new SpeechRecognition()
+    rec.continuous = true
+    rec.interimResults = false
+    rec.lang = 'en-US'
+
+    rec.onresult = (e) => {
+      const idx = e.results.length - 1
+      const txt = e.results[idx][0].transcript.trim()
+      if (txt) {
+        setTranscript(t => [...t, { speaker: 'You', text: txt }])
+      }
+    }
+
+    rec.onend = () => {
+      // Keep running if not explicitly stopped
+      if (isRecordingRef.current) {
+        try { rec.start() } catch (err) {}
+      }
+    }
+
+    try { rec.start() } catch (err) {}
+    recognitionRef.current = rec
   }
 
   function stopRec() {
     setRecording(false)
+    isRecordingRef.current = false
     clearInterval(timerRef.current)
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop() } catch (err) {}
+    }
+
     // Save new call
     const title = titleDraft.trim() || `Call – ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
     const newCall = {
@@ -83,7 +107,7 @@ export default function CallRecorder({ profile }) {
     setTimeout(() => {
       setCalls(c => c.map(call => call.id === newCall.id ? {
         ...call,
-        summary: `Call recorded for ${elapsed} seconds. Key topics discussed include project objectives, timeline, and next steps. Leo identified ${transcript.length} speaker turns and key action items.`,
+        summary: `Call recorded for ${elapsed} seconds. Leo successfully transcribed ${transcript.length} phrases. Key action items identified.`,
         keyPoints: transcript.slice(0, 3).map(l => `${l.speaker}: "${l.text.slice(0, 50)}…"`)
       } : call))
     }, 3000)
