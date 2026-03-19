@@ -29,12 +29,34 @@ const GREETING = () => {
   return 'Good evening'
 }
 
+const QUOTES = [
+  { text: "You always have to believe you can win.", author: "Max Verstappen" },
+  { text: "I try to write things that people can relate to.", author: "Tate McRae" },
+  { text: "Every person in the team is a link in the chain.", author: "Toto Wolff" },
+  { text: "I don't play the odds, I play the man.", author: "Harvey Specter" },
+  { text: "Life is this. I like this.", author: "Mike Ross" },
+  { text: "I didn't get to where I am by being afraid.", author: "Jessica Pearson" },
+  { text: "I don't pay for suits. My suits are on the house or the house burns down.", author: "Thomas Shelby" },
+  { text: "Stay hungry, stay foolish.", author: "Steve Jobs" },
+  { text: "It's fine to celebrate success but it is more important to heed the lessons of failure.", author: "Bill Gates" },
+  { text: "I don't believe in happy endings, but I do believe in happy journeys.", author: "George Clooney" },
+  { text: "A champion is defined not by their wins but by how they can recover when they fall.", author: "Serena Williams" },
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { text: "When something is important enough, you do it even if the odds are not in your favor.", author: "Elon Musk" },
+  { text: "Don't be afraid of failure. This is the way to succeed.", author: "LeBron James" },
+  { text: "Imagination is more important than knowledge.", author: "Albert Einstein" },
+]
+
 export default function Dashboard({ profile, onNavigate }) {
   const job = profile?.job || 'default'
   const tips = JOB_TIPS[job] || JOB_TIPS.default
-  const tip = tips[Math.floor(Date.now() / 86400000) % tips.length]
+  
+  const today = new Date()
+  const dayIndex = Math.floor(today.getTime() / 86400000)
+  
+  const tip = tips[dayIndex % tips.length]
+  const quote = QUOTES[dayIndex % QUOTES.length]
 
-  const today = new Date('2026-03-12')
   const dateStr = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   const QUICK_ACTIONS = [
@@ -56,19 +78,28 @@ export default function Dashboard({ profile, onNavigate }) {
         <p className="page-subtitle" style={{ marginBottom: 0, fontSize: 15, fontWeight: 600, background: 'linear-gradient(90deg, #22d3ee, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{dateStr}</p>
       </div>
 
-      {/* Leo's tip of the day */}
+      {/* Daily Quote & Tip */}
       <div className="card" style={{
         background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(34,211,238,0.08))',
         border: '1px solid rgba(99,102,241,0.3)',
         marginBottom: 24,
-        display: 'flex', gap: 16, alignItems: 'center'
       }}>
-        <div style={{ fontSize: 40, lineHeight: 1 }}>🦁</div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Leo's tip for you</div>
-          <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{tip}</div>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 16 }}>
+          <div style={{ fontSize: 32, lineHeight: 1 }}>💭</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--accent)', marginBottom: 6 }}>Quote of the Day</div>
+            <div style={{ fontSize: 16, fontStyle: 'italic', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: 8 }}>"{quote.text}"</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>— {quote.author}</div>
+          </div>
         </div>
-        <span className="pill pill-purple" style={{ marginLeft: 'auto', flexShrink: 0 }}>✨ {job}</span>
+        
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 16 }}>
+          <div style={{ fontSize: 22, lineHeight: 1 }}>🦁</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 2 }}>Leo's Tip ({job})</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{tip}</div>
+          </div>
+        </div>
       </div>
 
       {/* Quick stats */}
