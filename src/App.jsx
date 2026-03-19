@@ -113,7 +113,7 @@ export default function App() {
         <header className="topbar" role="banner">
           <div className="topbar-left">
             <div className="topbar-greeting">{NAV_ITEMS.find(n => n.id === page)?.label || 'Dashboard'}</div>
-            <div className="topbar-sub">{new Date('2026-03-12').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+            <div className="topbar-sub">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
           </div>
           <div className="topbar-right">
             <div className="user-badge" role="status" aria-label={`Logged in as ${profile.name}, ${profile.job}`}>
