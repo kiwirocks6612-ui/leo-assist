@@ -65,7 +65,7 @@ export default function Dashboard({ profile, onNavigate }) {
     { icon: '📅', label: 'Add Event', color: '#f59e0b', page: 'schedule' },
     { icon: '🎙', label: 'Record Call', color: '#f43f5e', page: 'calls' },
     { icon: '📁', label: 'Upload File', color: '#10b981', page: 'files' },
-    { icon: '💬', label: 'Ask Corvus', color: '#c084fc', page: 'ai' },
+    { icon: '💬', label: 'Ask Leo', color: '#c084fc', page: 'ai' },
   ]
 
   return (
@@ -94,9 +94,9 @@ export default function Dashboard({ profile, onNavigate }) {
         </div>
         
         <div style={{ display: 'flex', gap: 14, alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 16 }}>
-          <div style={{ fontSize: 22, lineHeight: 1 }}>🐦‍⬛</div>
+          <div style={{ fontSize: 22, lineHeight: 1 }}>🦁</div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 2 }}>Corvus's Tip ({job})</div>
+            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 2 }}>Leo's Tip ({job})</div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{tip}</div>
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function Dashboard({ profile, onNavigate }) {
         <div className="col-6">
           <div className="card" style={{ background: 'linear-gradient(135deg, rgba(10,11,15,1), rgba(20,22,30,1))' }}>
             <div className="card-header" style={{ marginBottom: 14 }}>
-              <div className="card-title">🐦‍⬛ Corvus Suggestions</div>
+              <div className="card-title">🦁 Leo Suggestions</div>
               <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('ai')}>Open AI →</button>
             </div>
             {[

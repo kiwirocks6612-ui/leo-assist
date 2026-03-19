@@ -102,7 +102,7 @@ const DIRECT_ANSWERS = [
   },
   {
     match: (t) => /what is (a )?rest api|rest api/i.test(t),
-    answer: () => `A **REST API** (Representational State Transfer) is a standard way for apps to communicate over HTTP.\n\n**The core idea:** everything is a "resource" with a URL, and you use HTTP methods to interact:\n• \`GET /users\` → fetch all users\n• \`GET /users/42\` → fetch user #42\n• \`POST /users\` → create a new user\n• \`PUT /users/42\` → update user #42\n• \`DELETE /users/42\` → delete user #42\n\n**Rules of REST:**\n• Stateless — each request has all the info needed\n• JSON is the standard data format\n• Responses include HTTP status codes (200, 404, 500, etc.)\n\nFor example, when Corvus loads your profile, it would call something like \`GET /api/profile\`.`,
+    answer: () => `A **REST API** (Representational State Transfer) is a standard way for apps to communicate over HTTP.\n\n**The core idea:** everything is a "resource" with a URL, and you use HTTP methods to interact:\n• \`GET /users\` → fetch all users\n• \`GET /users/42\` → fetch user #42\n• \`POST /users\` → create a new user\n• \`PUT /users/42\` → update user #42\n• \`DELETE /users/42\` → delete user #42\n\n**Rules of REST:**\n• Stateless — each request has all the info needed\n• JSON is the standard data format\n• Responses include HTTP status codes (200, 404, 500, etc.)\n\nFor example, when Leo loads your profile, it would call something like \`GET /api/profile\`.`,
   },
   {
     match: (t) => /what is git|how does git work/i.test(t),
@@ -110,7 +110,7 @@ const DIRECT_ANSWERS = [
   },
   {
     match: (t) => /what is python|why use python/i.test(t),
-    answer: () => `**Python** is a high-level, general-purpose programming language known for its readable, almost-English syntax.\n\n**Why it's popular:**\n• Easy to learn — minimal boilerplate, no semicolons or curly braces\n• Huge ecosystem — libraries for everything: AI (TensorFlow, PyTorch), data (Pandas, NumPy), web (Django, FastAPI)\n• Used in data science, ML, scripting, automation, and backend development\n\n**Quick example:**\n\`\`\`\ndef greet(name):\n    return f"Hello, {name}!"\n\nprint(greet("Corvus"))  # Hello, Corvus!\n\`\`\`\n\nPython is the #1 language for data science and AI. It's also great for beginners.`,
+    answer: () => `**Python** is a high-level, general-purpose programming language known for its readable, almost-English syntax.\n\n**Why it's popular:**\n• Easy to learn — minimal boilerplate, no semicolons or curly braces\n• Huge ecosystem — libraries for everything: AI (TensorFlow, PyTorch), data (Pandas, NumPy), web (Django, FastAPI)\n• Used in data science, ML, scripting, automation, and backend development\n\n**Quick example:**\n\`\`\`\ndef greet(name):\n    return f"Hello, {name}!"\n\nprint(greet("Leo"))  # Hello, Leo!\n\`\`\`\n\nPython is the #1 language for data science and AI. It's also great for beginners.`,
   },
   {
     match: (t) => /what is (a )?bug|debugging/i.test(t),
@@ -118,7 +118,7 @@ const DIRECT_ANSWERS = [
   },
   {
     match: (t) => /what is sql|what is a database/i.test(t),
-    answer: () => `**SQL** (Structured Query Language) is the language used to interact with relational databases.\n\n**A database** stores data in tables (like spreadsheets), and SQL lets you query and modify that data.\n\n**Common commands:**\n\`\`\`\nSELECT * FROM users WHERE age > 18;\nINSERT INTO users (name, email) VALUES ('Corvus', 'corvus@example.com');\nUPDATE users SET name = 'Corvus AI' WHERE id = 1;\nDELETE FROM users WHERE id = 99;\n\`\`\`\n\nPopular databases: **PostgreSQL** (powerful, open source), **MySQL** (widely used), **SQLite** (lightweight, embedded). Non-relational (NoSQL) alternatives include MongoDB, Firebase, and Redis.`,
+    answer: () => `**SQL** (Structured Query Language) is the language used to interact with relational databases.\n\n**A database** stores data in tables (like spreadsheets), and SQL lets you query and modify that data.\n\n**Common commands:**\n\`\`\`\nSELECT * FROM users WHERE age > 18;\nINSERT INTO users (name, email) VALUES ('Leo', 'leo@example.com');\nUPDATE users SET name = 'Leo AI' WHERE id = 1;\nDELETE FROM users WHERE id = 99;\n\`\`\`\n\nPopular databases: **PostgreSQL** (powerful, open source), **MySQL** (widely used), **SQLite** (lightweight, embedded). Non-relational (NoSQL) alternatives include MongoDB, Firebase, and Redis.`,
   },
   // === DESIGN ===
   {
@@ -144,11 +144,11 @@ const DIRECT_ANSWERS = [
   },
   {
     match: (t) => /what is (machine learning|ml|ai|artificial intelligence)/i.test(t),
-    answer: () => `**Machine Learning (ML)** is a branch of AI where systems learn from data to make predictions or decisions — without being explicitly programmed with rules.\n\n**Types of ML:**\n• **Supervised learning** — trained on labelled data (e.g. spam detection: emails labelled "spam" / "not spam")\n• **Unsupervised learning** — finds patterns in unlabelled data (e.g. customer segmentation)\n• **Reinforcement learning** — learns by trial and error with rewards (e.g. game-playing AIs)\n\n**Real examples you use daily:**\n• Gmail spam filter → supervised classification\n• Netflix recommendations → collaborative filtering\n• ChatGPT / Corvus → large language model (LLM) trained on text\n• Face unlock on your phone → convolutional neural network\n\n**Key tools:** Python, TensorFlow, PyTorch, scikit-learn, Hugging Face.`,
+    answer: () => `**Machine Learning (ML)** is a branch of AI where systems learn from data to make predictions or decisions — without being explicitly programmed with rules.\n\n**Types of ML:**\n• **Supervised learning** — trained on labelled data (e.g. spam detection: emails labelled "spam" / "not spam")\n• **Unsupervised learning** — finds patterns in unlabelled data (e.g. customer segmentation)\n• **Reinforcement learning** — learns by trial and error with rewards (e.g. game-playing AIs)\n\n**Real examples you use daily:**\n• Gmail spam filter → supervised classification\n• Netflix recommendations → collaborative filtering\n• ChatGPT / Leo → large language model (LLM) trained on text\n• Face unlock on your phone → convolutional neural network\n\n**Key tools:** Python, TensorFlow, PyTorch, scikit-learn, Hugging Face.`,
   },
   {
     match: (t) => /what is (a )?api/i.test(t),
-    answer: () => `An **API** (Application Programming Interface) is a contract between two pieces of software — it defines what requests you can make and what responses you'll get back.\n\n**Real-world analogy:** Think of it like a restaurant menu. You (the app) don't go into the kitchen — you give your order (a request) to the waiter (the API), and the kitchen (the server) prepares what you asked for.\n\n**Common examples:**\n• Weather app → calls a weather API to get today's forecast\n• "Sign in with Google" → uses Google's OAuth API\n• Stripe payments → calls Stripe's payments API\n• This app → would call an AI API (like Gemini or OpenAI) to power Corvus\n\n**REST APIs** are the most common type, using HTTP and JSON. GraphQL is a popular modern alternative.`,
+    answer: () => `An **API** (Application Programming Interface) is a contract between two pieces of software — it defines what requests you can make and what responses you'll get back.\n\n**Real-world analogy:** Think of it like a restaurant menu. You (the app) don't go into the kitchen — you give your order (a request) to the waiter (the API), and the kitchen (the server) prepares what you asked for.\n\n**Common examples:**\n• Weather app → calls a weather API to get today's forecast\n• "Sign in with Google" → uses Google's OAuth API\n• Stripe payments → calls Stripe's payments API\n• This app → would call an AI API (like Gemini or OpenAI) to power Leo\n\n**REST APIs** are the most common type, using HTTP and JSON. GraphQL is a popular modern alternative.`,
   },
   {
     match: (t) => /capital of/i.test(t),
@@ -197,7 +197,7 @@ const DIRECT_ANSWERS = [
   // === GREETINGS / CONVERSATIONAL ===
   {
     match: (t) => /^(hi|hello|hey|hiya|howdy|sup|yo)\b/i.test(t.trim()),
-    answer: (_, job) => `Hey! 👋 I'm Corvus, your AI assistant. I can answer real questions — try asking me:\n\n• "What is async/await?"\n• "What is a REST API?"\n• "How much sleep do I need?"\n• "What is machine learning?"\n• "What's the capital of Japan?"\n\nOr ask me anything about your **${job}** work!`,
+    answer: (_, job) => `Hey! 👋 I'm Leo, your AI assistant. I can answer real questions — try asking me:\n\n• "What is async/await?"\n• "What is a REST API?"\n• "How much sleep do I need?"\n• "What is machine learning?"\n• "What's the capital of Japan?"\n\nOr ask me anything about your **${job}** work!`,
   },
   {
     match: (t) => /thank/i.test(t),
@@ -205,7 +205,7 @@ const DIRECT_ANSWERS = [
   },
   {
     match: (t) => /how are you|how do you feel/i.test(t),
-    answer: () => `I'm doing great — ready to answer your questions! 🐦‍⬛\n\nI work best when you ask me specific things. Try: "What is React?", "How does Git work?", "What's the capital of Brazil?" — I'll give you a real answer, not a list of tips.`,
+    answer: () => `I'm doing great — ready to answer your questions! 🦁\n\nI work best when you ask me specific things. Try: "What is React?", "How does Git work?", "What's the capital of Brazil?" — I'll give you a real answer, not a list of tips.`,
   },
 
   // === BROAD TOPIC OVERVIEWS ===
@@ -293,7 +293,7 @@ function generateResponse(userText, job, jobKey) {
   }
 
   // Catch-all: make a genuine attempt based on the topic
-  return `I hear you — you're asking about **"${topic}"**. 🐦‍⬛\n\nHere's what's generally true about most topics in this space:\n• There's almost always an official or authoritative source — look for it first\n• The fundamentals matter more than the trendy details\n• Understanding the "why" behind something makes the "how" much easier to learn\n\nI'm best at answering direct questions. Try one of these formats:\n• **"What is ${topic}?"** → I'll define and explain it\n• **"How does ${topic} work?"** → I'll walk through the mechanics\n• **"Tell me about ${topic}"** → I'll give a full overview\n• **"Best way to do ${topic}"** → I'll give a concrete recommendation\n\nWhat specifically do you want to know?`
+  return `I hear you — you're asking about **"${topic}"**. 🦁\n\nHere's what's generally true about most topics in this space:\n• There's almost always an official or authoritative source — look for it first\n• The fundamentals matter more than the trendy details\n• Understanding the "why" behind something makes the "how" much easier to learn\n\nI'm best at answering direct questions. Try one of these formats:\n• **"What is ${topic}?"** → I'll define and explain it\n• **"How does ${topic} work?"** → I'll walk through the mechanics\n• **"Tell me about ${topic}"** → I'll give a full overview\n• **"Best way to do ${topic}"** → I'll give a concrete recommendation\n\nWhat specifically do you want to know?`
 }
 
 // For custom jobs, try a loose keyword match against known presets
@@ -339,8 +339,8 @@ export default function AIChat({ profile }) {
 
   const [messages, setMessages] = useState([
     {
-      id: 1, role: 'corvus',
-      text: `Hey ${profile?.name || 'there'}! 👋 I'm Corvus, your AI work assistant. I'm here to help you with your ${job} work. Ask me anything — from quick questions to complex tasks.`
+      id: 1, role: 'leo',
+      text: `Hey ${profile?.name || 'there'}! 👋 I'm Leo, your AI work assistant. I'm here to help you with your ${job} work. Ask me anything — from quick questions to complex tasks.`
     }
   ])
   const [input, setInput] = useState('')
@@ -362,14 +362,14 @@ export default function AIChat({ profile }) {
     // Use real Gemini API if a key is configured
     if (HAS_KEY) {
       try {
-        const systemPrompt = `You are Corvus, an intelligent AI work assistant. The user's name is ${profile?.name || 'there'} and their job is: ${job}. Give concise, direct, genuinely helpful answers. Use ** for bold text and • for bullet points (never use * for bullets). Keep responses focused and practical.`
+        const systemPrompt = `You are Leo, an intelligent AI work assistant. The user's name is ${profile?.name || 'there'} and their job is: ${job}. Give concise, direct, genuinely helpful answers. Use ** for bold text and • for bullet points (never use * for bullets). Keep responses focused and practical.`
         const resp = await callGemini(`${systemPrompt}\n\nUser: ${txt}`)
-        setMessages(m => [...m, { id: Date.now() + 1, role: 'corvus', text: resp }])
+        setMessages(m => [...m, { id: Date.now() + 1, role: 'leo', text: resp }])
         setIsTyping(false)
         return
       } catch (err) {
         console.error('Gemini API error:', err)
-        setMessages(m => [...m, { id: Date.now() + 1, role: 'corvus', text: `❌ AI error: ${err.message}` }])
+        setMessages(m => [...m, { id: Date.now() + 1, role: 'leo', text: `❌ AI error: ${err.message}` }])
         setIsTyping(false)
         return
       }
@@ -378,7 +378,7 @@ export default function AIChat({ profile }) {
     // Fallback to local engine if no API key
     setTimeout(() => {
       const resp = generateResponse(txt, job, jobKey)
-      setMessages(m => [...m, { id: Date.now() + 1, role: 'corvus', text: resp }])
+      setMessages(m => [...m, { id: Date.now() + 1, role: 'leo', text: resp }])
       setIsTyping(false)
     }, 900 + Math.random() * 700)
   }
@@ -413,15 +413,15 @@ export default function AIChat({ profile }) {
               <div className="chat-messages" role="log" aria-label="Chat messages" aria-live="polite">
                 {messages.map(m => (
                   <div key={m.id} className={`msg ${m.role} anim-fade-up`}>
-                    <div className="msg-avatar" aria-hidden="true">{m.role === 'corvus' ? '🐦‍⬛' : (profile?.name?.[0] || '?')}</div>
+                    <div className="msg-avatar" aria-hidden="true">{m.role === 'leo' ? '🦁' : (profile?.name?.[0] || '?')}</div>
                     <div className="msg-bubble" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
-                      {m.role === 'corvus' ? renderText(m.text) : m.text}
+                      {m.role === 'leo' ? renderText(m.text) : m.text}
                     </div>
                   </div>
                 ))}
                 {isTyping && (
-                  <div className="msg corvus anim-fade-up" aria-live="polite" aria-label="Corvus is typing">
-                    <div className="msg-avatar" aria-hidden="true">🐦‍⬛</div>
+                  <div className="msg leo anim-fade-up" aria-live="polite" aria-label="Leo is typing">
+                    <div className="msg-avatar" aria-hidden="true">🦁</div>
                     <div className="msg-bubble" style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '14px 16px' }}>
                       {[0, 1, 2].map(i => (
                         <span key={i} style={{
@@ -438,11 +438,11 @@ export default function AIChat({ profile }) {
               <div className="chat-input-bar">
                 <input
                   className="chat-input"
-                  placeholder={`Ask Corvus about your ${job} work…`}
+                  placeholder={`Ask Leo about your ${job} work…`}
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                  aria-label="Message Corvus"
+                  aria-label="Message Leo"
                 />
                 <button
                   className="btn btn-primary btn-icon"
@@ -498,7 +498,7 @@ export default function AIChat({ profile }) {
             </div>
           </div>
           <div className="card">
-            <div className="card-title" style={{ marginBottom: 12 }}>Corvus can help with</div>
+            <div className="card-title" style={{ marginBottom: 12 }}>Leo can help with</div>
             {['Summarising documents', 'Drafting emails & reports', 'Research & fact-checking', 'Planning your schedule', 'Explaining complex topics'].map((t, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                 <span style={{ color: 'var(--accent-4)' }}>✓</span> {t}
