@@ -368,14 +368,11 @@ export default function AIChat({ profile }) {
         setIsTyping(false)
         return
       } catch (err) {
-        console.error('Gemini API error:', err)
-        setMessages(m => [...m, { id: Date.now() + 1, role: 'leo', text: `❌ AI error: ${err.message}` }])
-        setIsTyping(false)
-        return
+        console.warn('Gemini API hit a limit or error. Falling back to local offline engine:', err.message)
       }
     }
 
-    // Fallback to local engine if no API key
+    // Fallback to local engine if no API key or if API call failed
     setTimeout(() => {
       const resp = generateResponse(txt, job, jobKey)
       setMessages(m => [...m, { id: Date.now() + 1, role: 'leo', text: resp }])
