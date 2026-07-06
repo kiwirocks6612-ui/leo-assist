@@ -15,12 +15,13 @@ function fmt(s) {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
 }
 
-export default function Timer() {
-  const [mode, setMode] = useState('pomodoro')
-  const [customMins, setCustomMins] = useState(30)
-  const [totalSecs, setTotalSecs] = useState(25 * 60)
-  const [secsLeft, setSecsLeft] = useState(25 * 60)
-  const [running, setRunning] = useState(false)
+export default function Timer({ initialMinutes }) {
+  const startMins = initialMinutes || 25
+  const [mode, setMode] = useState(initialMinutes ? 'custom' : 'pomodoro')
+  const [customMins, setCustomMins] = useState(startMins)
+  const [totalSecs, setTotalSecs] = useState(startMins * 60)
+  const [secsLeft, setSecsLeft] = useState(startMins * 60)
+  const [running, setRunning] = useState(!!initialMinutes)
   const [sessions, setSessions] = useState(0)
   const [label, setLabel] = useState('Deep Work')
   const intervalRef = useRef(null)
@@ -37,6 +38,14 @@ export default function Timer() {
             clearInterval(intervalRef.current)
             setRunning(false)
             setSessions(n => n + 1)
+            // Browser notification
+            if (Notification.permission === 'granted') {
+              new Notification('Leo Focus Timer', { body: `✅ Session complete! Time for a break.`, icon: '/favicon.ico' })
+            } else if (Notification.permission !== 'denied') {
+              Notification.requestPermission().then(p => {
+                if (p === 'granted') new Notification('Leo Focus Timer', { body: '✅ Session complete! Time for a break.' })
+              })
+            }
             return 0
           }
           return s - 1

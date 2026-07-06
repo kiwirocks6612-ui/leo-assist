@@ -1,17 +1,11 @@
 import { useState, useRef } from 'react'
+import { useAppContext } from '../AppContext'
 
 const COLORS = ['color-purple', 'color-cyan', 'color-amber', 'color-green']
 const COLOR_LABELS = ['Purple', 'Cyan', 'Amber', 'Green']
 
-const SAMPLE_NOTES = [
-  { id: 1, title: 'Q1 Goals', content: 'Finalise product roadmap, review team OKRs, prepare board presentation with updated metrics and projections.', color: 'color-purple', tags: ['work', 'planning'], date: 'Mar 10' },
-  { id: 2, title: 'Meeting Notes – 11 Mar', content: 'Action items: follow up with design team on new branding guidelines, schedule user research sessions, review A/B test results.', color: 'color-cyan', tags: ['meetings'], date: 'Mar 11' },
-  { id: 3, title: 'Ideas Backlog', content: 'AI-powered onboarding flow, dark mode toggle improvements, export to PDF feature, Slack integration for notifications.', color: 'color-amber', tags: ['ideas', 'product'], date: 'Mar 8' },
-  { id: 4, title: 'Reading List', content: "Deep Work \u2013 Cal Newport, Atomic Habits, The Manager's Path, Clean Code, Thinking Fast and Slow.", color: 'color-green', tags: ['personal', 'learning'], date: 'Mar 5' },
-]
-
 export default function Notes() {
-  const [notes, setNotes] = useState(SAMPLE_NOTES)
+  const { notes, setNotes } = useAppContext()
   const [search, setSearch] = useState('')
   const [activeNote, setActiveNote] = useState(null)
   const [isEditing, setIsEditing] = useState(false)

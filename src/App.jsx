@@ -25,9 +25,31 @@ const JOB_EMOJIS = {
 }
 
 export default function App() {
-  const [profile, setProfile] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('leo_profile')) } catch { return null }
+  const [profiles, setProfiles] = useState(() => {
+    try {
+      let savedProfiles = JSON.parse(localStorage.getItem('leo_profiles'))
+      if (!savedProfiles || savedProfiles.length === 0) {
+        // Migration from old single profile
+        const oldProfile = JSON.parse(localStorage.getItem('leo_profile'))
+        if (oldProfile) {
+          oldProfile.id = 'legacy_profile'
+          savedProfiles = [oldProfile]
+          localStorage.setItem('leo_profiles', JSON.stringify(savedProfiles))
+          localStorage.setItem('leo_active_profile_id', 'legacy_profile')
+        } else {
+          savedProfiles = []
+        }
+      }
+      return savedProfiles
+    } catch { return [] }
   })
+
+  const [activeProfileId, setActiveProfileId] = useState(() => {
+    return localStorage.getItem('leo_active_profile_id') || null
+  })
+
+  const profile = profiles.find(p => p.id === activeProfileId)
+
   const [page, setPage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -41,17 +63,95 @@ export default function App() {
   }, [profile])
 
   function handleOnboardingComplete(p) {
-    localStorage.setItem('leo_profile', JSON.stringify(p))
-    setProfile(p)
+    const newProfile = { ...p, id: Date.now().toString() }
+    const newProfiles = [...profiles, newProfile]
+    localStorage.setItem('leo_profiles', JSON.stringify(newProfiles))
+    localStorage.setItem('leo_active_profile_id', newProfile.id)
+    setProfiles(newProfiles)
+    setActiveProfileId(newProfile.id)
     setPage('dashboard')
   }
 
-  function resetProfile() {
-    localStorage.removeItem('leo_profile')
-    setProfile(null)
+  function handleSwitchAccount() {
+    localStorage.removeItem('leo_active_profile_id')
+    setActiveProfileId(null)
   }
 
-  if (!profile) return <Onboarding onComplete={handleOnboardingComplete} />
+  function handleSelectProfile(id) {
+    if (id === 'new') {
+      setActiveProfileId('new')
+    } else {
+      localStorage.setItem('leo_active_profile_id', id)
+      setActiveProfileId(id)
+    }
+  }
+
+  function handleDeleteProfile(e, id) {
+    e.stopPropagation()
+    if (confirm("Are you sure you want to delete this profile?")) {
+      const newProfiles = profiles.filter(p => p.id !== id)
+      setProfiles(newProfiles)
+      localStorage.setItem('leo_profiles', JSON.stringify(newProfiles))
+      if (activeProfileId === id) {
+        setActiveProfileId(null)
+        localStorage.removeItem('leo_active_profile_id')
+      }
+    }
+  }
+
+  if (!activeProfileId) {
+    if (profiles.length > 0) {
+      return (
+        <div className="onboard-wrap">
+          <div className="onboard-orb onboard-orb-1" aria-hidden="true" />
+          <div className="onboard-orb onboard-orb-2" aria-hidden="true" />
+          <div className="onboard-card anim-scale-in" style={{ padding: 40, width: 400 }}>
+             <h1 className="onboard-title" style={{ marginBottom: 8, fontSize: 28 }}>Who is using Leo?</h1>
+             <p className="onboard-sub" style={{ marginBottom: 24 }}>Select your account to continue.</p>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+               {profiles.map(p => (
+                 <button key={p.id} className="btn btn-secondary" onClick={() => handleSelectProfile(p.id)} style={{ padding: '16px', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                     <div className="avatar" style={{ background: 'var(--accent)', color: 'white' }}>{p.name?.[0]?.toUpperCase() || '?'}</div>
+                     <div style={{ textAlign: 'left', flex: 1 }}>
+                       <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-primary)' }}>{p.name}</div>
+                       <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{JOB_EMOJIS[p.job] || '💼'} {p.job}</div>
+                     </div>
+                   </div>
+                   <div
+                     onClick={(e) => handleDeleteProfile(e, p.id)}
+                     style={{
+                       padding: '6px 10px', background: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e',
+                       borderRadius: 'var(--radius-sm)', fontSize: 12, border: '1px solid rgba(244, 63, 94, 0.2)',
+                       cursor: 'pointer'
+                     }}
+                     title="Delete Profile"
+                   >
+                     Delete
+                   </div>
+                 </button>
+               ))}
+               <button className="btn btn-primary" onClick={() => handleSelectProfile('new')} style={{ marginTop: 12, justifyContent: 'center' }}>
+                 + Create New Account
+               </button>
+             </div>
+          </div>
+        </div>
+      )
+    }
+    return <Onboarding onComplete={handleOnboardingComplete} />
+  }
+
+  if (activeProfileId === 'new') {
+     return <Onboarding onComplete={handleOnboardingComplete} onCancel={profiles.length > 0 ? () => setActiveProfileId(null) : undefined} />
+  }
+  
+  // If the profile object isn't found for some reason, reset to null
+  if (!profile) {
+    localStorage.removeItem('leo_active_profile_id')
+    setActiveProfileId(null)
+    return null
+  }
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -125,11 +225,11 @@ export default function App() {
             </div>
             <button
               className="icon-btn"
-              onClick={resetProfile}
-              aria-label="Reset profile / log out"
-              title="Reset profile"
+              onClick={handleSwitchAccount}
+              aria-label="Switch account"
+              title="Switch account"
             >
-              ⚙
+              ⮀
             </button>
           </div>
         </header>
@@ -137,7 +237,7 @@ export default function App() {
         {/* Pages */}
         <main>
           {page === 'dashboard' && <Dashboard profile={profile} onNavigate={setPage} />}
-          {page === 'ai' && <AIChat profile={profile} />}
+          {page === 'ai' && <AIChat profile={profile} onNavigate={setPage} />}
           {page === 'timer' && <Timer />}
           {page === 'schedule' && <Scheduler />}
           {page === 'notes' && <Notes />}

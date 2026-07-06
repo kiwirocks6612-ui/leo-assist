@@ -19,7 +19,7 @@ const JOBS = [
   { id: 'other', emoji: '✨', name: 'Other…' },
 ]
 
-export default function Onboarding({ onComplete }) {
+export default function Onboarding({ onComplete, onCancel }) {
   const [step, setStep] = useState(0)
   const [profile, setProfile] = useState({
     name: '', job: '', customJob: '', company: '', accessibility: false
@@ -43,8 +43,17 @@ export default function Onboarding({ onComplete }) {
       <div className="onboard-orb onboard-orb-1" aria-hidden="true" />
       <div className="onboard-orb onboard-orb-2" aria-hidden="true" />
 
-      <div className="onboard-card anim-scale-in">
-        <div className="onboard-logo">
+      <div className="onboard-card anim-scale-in" style={{ position: 'relative' }}>
+        {onCancel && (
+           <button 
+             onClick={onCancel} 
+             className="btn btn-secondary" 
+             style={{ position: 'absolute', top: 16, left: 16, padding: '6px 12px', fontSize: 12 }}
+           >
+             ← Back
+           </button>
+        )}
+        <div className="onboard-logo" style={{ marginTop: onCancel ? 20 : 0 }}>
           <div className="onboard-logo-icon" aria-hidden="true">🦁</div>
           <span className="onboard-logo-text">Leo</span>
         </div>

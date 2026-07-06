@@ -1,28 +1,24 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useAppContext } from '../AppContext'
 
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY
-const HAS_KEY = GEMINI_KEY && GEMINI_KEY !== 'your_api_key_here'
-
-async function callGemini(prompt) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        tools: [{ googleSearch: {} }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 800 },
-      }),
-    }
-  )
+async function callGemini(history, systemPrompt) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ history, systemPrompt }),
+  })
   if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.error?.message || `HTTP ${res.status}`)
+    let err
+    try {
+      err = await res.json()
+    } catch (e) {
+      throw new Error(`HTTP ${res.status}`)
+    }
+    throw new Error(err.error || `HTTP ${res.status}`)
   }
-  const data = await res.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received.'
+  return await res.json()
 }
+
 
 const JOB_NEWS = {
   developer: [
@@ -237,14 +233,33 @@ const DIRECT_ANSWERS = [
     match: (t) => /\b(about |tell me about |explain |overview of |what is )?\b(business|entrepreneur|startup)\b/i.test(t),
     answer: () => `**Business** is the activity of creating, buying, or selling products/services in exchange for money.\n\n**Key business concepts:**\n\n**Revenue models — how businesses make money:**\n• Subscription (SaaS) — recurring monthly/annual fee (Spotify, Netflix, Slack)\n• Transaction — one-time sale (Amazon, Apple Store)\n• Advertising — free product, paid by advertisers (Google, Meta)\n• Marketplace — take a cut of each transaction (Airbnb, Uber, eBay)\n• Freemium — free tier converts to paid (Notion, Figma, Spotify)\n\n**Financial basics:**\n• **Revenue** — money coming in from sales\n• **Cost of Goods Sold (COGS)** — direct costs to deliver your product\n• **Gross Profit** = Revenue − COGS\n• **Operating Expenses** — rent, salaries, marketing, admin\n• **Net Profit (bottom line)** = Gross Profit − Operating Expenses\n• **Burn Rate** — how fast a startup spends cash\n• **Runway** — how long until the money runs out\n\n**Startup stages:**\n• Idea → MVP (Minimum Viable Product) → Product-Market Fit → Scale → Profitability\n\n**Key frameworks:**\n• **Lean Startup** — build → measure → learn, fast iteration\n• **Business Model Canvas** — map your entire business on one page\n• **SWOT Analysis** — Strengths, Weaknesses, Opportunities, Threats\n\nThe most important business skill is understanding your customer better than they understand themselves.`,
   },
+  {
+    match: (t) => /\b(about |tell me about |explain |overview of |what is )?\baccessibility|a11y\b/i.test(t),
+    answer: () => `**Accessibility (often written as a11y)** means designing and building digital products so they can be used by everyone, including people with disabilities (visual, auditory, motor, or cognitive).\n\n**Why it matters:**\n• Over 1 billion people globally have some form of disability\n• It often improves the experience for *everyone* (e.g. high contrast helps when reading in bright sunlight)\n• It is a legal requirement in many countries (like the ADA in the US or EAA in Europe)\n\n**Core principles (WCAG):**\n• **Perceivable:** Users can identify content and interface elements (e.g. alt text for images, high contrast text)\n• **Operable:** Users can successfully use controls (e.g. full keyboard navigation, no keyboard traps)\n• **Understandable:** Consistent interfaces and clear language\n• **Robust:** Works with assistive technologies like screen readers\n\n**Common best practices:**\n• Always use semantic HTML (like \`<button>\` instead of \`<div onClick>\`)\n• Ensure a color contrast ratio of at least 4.5:1 for text\n• Provide clear, descriptive \`alt\` attributes for images\n• Make sure the site is fully usable with just a keyboard`,
+  },
+  {
+    match: (t) => /blair waldorf/i.test(t),
+    answer: () => `"Whoever said that money doesn't buy happiness didn't know where to shop." — Blair Waldorf 👑\n\n"Destiny is for losers. It's just a stupid excuse to wait for things to happen instead of making them happen." — Blair Waldorf 👑\n\n"Fashion is the most powerful art there is. It's movement, design, and architecture all in one. It shows the world who we are and who we'd like to be." — Blair Waldorf 👑`,
+  },
+  {
+    match: (t) => /formula one|f1\b/i.test(t),
+    answer: () => `"If you no longer go for a gap that exists, you are no longer a racing driver." — Ayrton Senna 🏎️\n\n"To achieve anything in this game, you must be prepare to dabble in the boundary of disaster." — Stirling Moss 🏎️\n\n"I am an artist. The track is my canvas, and the car is my brush." — Graham Hill 🏎️`,
+  },
+  {
+    match: (t) => /stranger things/i.test(t),
+    answer: () => `"Friends don't lie." — Eleven 🧇\n\n"Mornings are for coffee and contemplation." — Chief Hopper ☕\n\n"Nobody normal ever accomplished anything meaningful in this world." — Jonathan Byers 📸\n\n"Always the babysitter. Always the goddamn babysitter!" — Steve Harrington 🏏\n\n"It's Fabergé Organics. Use the shampoo and conditioner, and when your hair's damp, not wet, okay? When it's damp, you do four puffs of the Farrah Fawcett spray." — Steve Harrington 💇‍♂️`,
+  },
 ]
 
 // Universal smart answer engine — understands question intent for any question
-function generateResponse(userText, job, jobKey) {
+function generateResponse(userText, job, jobKey, profile) {
+  let response = '';
+
   // Check direct-answer patterns first (specific knowledge questions)
   for (const item of DIRECT_ANSWERS) {
     if (item.match(userText)) {
-      return item.answer(userText, job)
+      response = item.answer(userText, job);
+      break;
     }
   }
 
@@ -271,29 +286,38 @@ function generateResponse(userText, job, jobKey) {
     const a = sides[0]?.trim() || topic
     const b = sides[1]?.trim()
     if (b) {
-      return `**${a} vs ${b}** — here's a direct comparison:\n\n**${a}**\n• More established/suited for: specific use cases, look at official docs\n• Strengths: performance, ecosystem, ease of use depend on the context\n• Best when: you need its primary use case\n\n**${b}**\n• More established/suited for: different use cases or audiences\n• Strengths: may trade some features for simplicity or power\n• Best when: its specific strengths match your need\n\n**My recommendation:** The winner depends on your specific constraint. Tell me more — what are you building, and what matters most (speed to build, performance, learning curve, cost)? I'll give you a direct pick.`
+      response = `**${a} vs ${b}** — here's a direct comparison:\n\n**${a}**\n• More established/suited for: specific use cases, look at official docs\n• Strengths: performance, ecosystem, ease of use depend on the context\n• Best when: you need its primary use case\n\n**${b}**\n• More established/suited for: different use cases or audiences\n• Strengths: may trade some features for simplicity or power\n• Best when: its specific strengths match your need\n\n**My recommendation:** The winner depends on your specific constraint. Tell me more — what are you building, and what matters most (speed to build, performance, learning curve, cost)? I'll give you a direct pick.`
+    } else {
+      response = `To compare **"${topic}"** properly, I'd need to know both things you're weighing up. Try: "X vs Y" and I'll give you a direct side-by-side breakdown covering: purpose, trade-offs, use cases, and a clear recommendation.`
     }
-    return `To compare **"${topic}"** properly, I'd need to know both things you're weighing up. Try: "X vs Y" and I'll give you a direct side-by-side breakdown covering: purpose, trade-offs, use cases, and a clear recommendation.`
   }
 
-  if (isBest) {
-    return `For **"${topic}"** — here's how to pick the best option:\n\n**Step 1: Define what "best" means for you**\n• Speed to ship? → pick the most popular/documented option\n• Performance? → benchmark with your actual data\n• Long-term maintainability? → pick the one with the most active community\n• Cost? → check pricing at your expected scale\n• Team familiarity? → pick what your team knows\n\n**General top picks by category:**\n• Web frameworks → React (most jobs), Vue (simpler), Next.js (full-stack)\n• Design tools → Figma (industry standard)\n• Databases → PostgreSQL (general), MongoDB (flexible schema), Redis (caching)\n• Project management → Linear (engineering), Notion (general), Jira (enterprise)\n• Communication → Slack (teams), Discord (communities)\n\nTell me specifically what you need "${topic}" for, and I'll give you a single direct recommendation.`
+  if (!response && isBest) {
+    response = `For **"${topic}"** — here's how to pick the best option:\n\n**Step 1: Define what "best" means for you**\n• Speed to ship? → pick the most popular/documented option\n• Performance? → benchmark with your actual data\n• Long-term maintainability? → pick the one with the most active community\n• Cost? → check pricing at your expected scale\n• Team familiarity? → pick what your team knows\n\n**General top picks by category:**\n• Web frameworks → React (most jobs), Vue (simpler), Next.js (full-stack)\n• Design tools → Figma (industry standard)\n• Databases → PostgreSQL (general), MongoDB (flexible schema), Redis (caching)\n• Project management → Linear (engineering), Notion (general), Jira (enterprise)\n• Communication → Slack (teams), Discord (communities)\n\nTell me specifically what you need "${topic}" for, and I'll give you a single direct recommendation.`
   }
 
-  if (isHow) {
-    return `**How to ${topic}** — here's the step-by-step:\n\n1. **Understand the goal** — what does success look like? Define it concretely.\n2. **Research first** — check official docs or authoritative sources before guessing\n3. **Break it into stages** — most tasks have 3–7 sub-steps; identify them before starting\n4. **Start with the simplest version** — get something working, then improve it\n5. **Test as you go** — don't wait until the end to find out something is wrong\n6. **Iterate** — refine based on real results, not assumptions\n\nI can give more detailed, specific steps if you tell me the context — what tool, language, or situation are you working in?`
+  if (!response && isHow) {
+    response = `**How to ${topic}** — here's the step-by-step:\n\n1. **Understand the goal** — what does success look like? Define it concretely.\n2. **Research first** — check official docs or authoritative sources before guessing\n3. **Break it into stages** — most tasks have 3–7 sub-steps; identify them before starting\n4. **Start with the simplest version** — get something working, then improve it\n5. **Test as you go** — don't wait until the end to find out something is wrong\n6. **Iterate** — refine based on real results, not assumptions\n\nI can give more detailed, specific steps if you tell me the context — what tool, language, or situation are you working in?`
   }
 
-  if (isWhy) {
-    return `**Why ${topic}** — great question to ask. Here's the answer:\n\n**The short reason:** Most "why" questions come down to one of these:\n• It solves a specific problem that existed before it\n• It's a trade-off — gaining something by giving something else up\n• It evolved from historical constraints that no longer exist but the behaviour remains\n• There's a strong incentive (economic, technical, social) driving it\n\n**For "${topic}" specifically:**\nThe honest answer depends on the exact context. Is this a technical "why" (e.g. why does JavaScript do X?), a scientific "why" (why does the body do X?), or a strategic "why" (why do companies do X?)?\n\nAsk me something like: "Why does [specific thing] work this way?" and I'll give you the real reason.`
+  if (!response && isWhy) {
+    response = `**Why ${topic}** — great question to ask. Here's the answer:\n\n**The short reason:** Most "why" questions come down to one of these:\n• It solves a specific problem that existed before it\n• It's a trade-off — gaining something by giving something else up\n• It evolved from historical constraints that no longer exist but the behaviour remains\n• There's a strong incentive (economic, technical, social) driving it\n\n**For "${topic}" specifically:**\nThe honest answer depends on the exact context. Is this a technical "why" (e.g. why does JavaScript do X?), a scientific "why" (why does the body do X?), or a strategic "why" (why do companies do X?)?\n\nAsk me something like: "Why does [specific thing] work this way?" and I'll give you the real reason.`
   }
 
-  if (isWhat) {
-    return `**${topic}** is something I can explain! Here's what I know:\n\nThis could refer to a few different things depending on context. Tell me a bit more and I'll give you a precise definition with examples.\n\nI have solid knowledge of:\n• **Tech:** React, Python, Git, databases, APIs, machine learning, cloud, security\n• **Design:** UX, UI, Figma, typography, colour theory, design systems\n• **Business:** marketing, OKRs, startups, revenue models, project management\n• **Science/health:** sleep, nutrition, biology, medicine\n• **General knowledge:** geography, history, economics\n\nWhat specifically about **"${topic}"** do you want to know?`
+  if (!response && isWhat) {
+    response = `**${topic}** is something I can explain! Here's what I know:\n\nThis could refer to a few different things depending on context. Tell me a bit more and I'll give you a precise definition with examples.\n\nI have solid knowledge of:\n• **Tech:** React, Python, Git, databases, APIs, machine learning, cloud, security\n• **Design:** UX, UI, Figma, typography, colour theory, design systems\n• **Business:** marketing, OKRs, startups, revenue models, project management\n• **Science/health:** sleep, nutrition, biology, medicine\n• **General knowledge:** geography, history, economics\n\nWhat specifically about **"${topic}"** do you want to know?`
   }
 
   // Catch-all: make a genuine attempt based on the topic
-  return `I hear you — you're asking about **"${topic}"**. 🦁\n\nHere's what's generally true about most topics in this space:\n• There's almost always an official or authoritative source — look for it first\n• The fundamentals matter more than the trendy details\n• Understanding the "why" behind something makes the "how" much easier to learn\n\nI'm best at answering direct questions. Try one of these formats:\n• **"What is ${topic}?"** → I'll define and explain it\n• **"How does ${topic} work?"** → I'll walk through the mechanics\n• **"Tell me about ${topic}"** → I'll give a full overview\n• **"Best way to do ${topic}"** → I'll give a concrete recommendation\n\nWhat specifically do you want to know?`
+  if (!response) {
+    response = `I hear you — you're asking about **"${topic}"**. 🦁\n\nHere's what's generally true about most topics in this space:\n• There's almost always an official or authoritative source — look for it first\n• The fundamentals matter more than the trendy details\n• Understanding the "why" behind something makes the "how" much easier to learn\n\nI'm best at answering direct questions. Try one of these formats:\n• **"What is ${topic}?"** → I'll define and explain it\n• **"How does ${topic} work?"** → I'll walk through the mechanics\n• **"Tell me about ${topic}"** → I'll give a full overview\n• **"Best way to do ${topic}"** → I'll give a concrete recommendation\n\nWhat specifically do you want to know?`
+  }
+
+  if (profile?.accessibility) {
+    response = "*(Accessibility Mode Enabled)*\n\n" + response.split('\n').join('\n\n');
+  }
+
+  return response;
 }
 
 // For custom jobs, try a loose keyword match against known presets
@@ -303,6 +327,32 @@ function resolveJobKey(job) {
   const lower = job.toLowerCase()
   const match = known.find(k => lower.includes(k) || k.includes(lower))
   return match || 'default'
+}
+
+function getJobNews(job) {
+  const jobKey = resolveJobKey(job)
+  if (jobKey !== 'default') return JOB_NEWS[jobKey]
+  
+  const capJob = job.charAt(0).toUpperCase() + job.slice(1)
+  return [
+    { emoji: '📰', source: 'The Globe and Mail', headline: `New trends shaping the future of ${capJob}s this year`, time: '2h ago', tag: 'Industry Trends' },
+    { emoji: '💡', source: 'Forbes', headline: `Top essential skills every ${capJob} needs right now`, time: '4h ago', tag: 'Career Skills' },
+    { emoji: '🚀', source: 'Reuters', headline: `How AI is changing the daily workflow of a ${capJob}`, time: '6h ago', tag: 'AI Technology' },
+    { emoji: '🤝', source: 'Bloomberg', headline: `Upcoming conferences and networking events for ${capJob} professionals`, time: '1d ago', tag: 'Networking' },
+    { emoji: '📈', source: 'BBC News', headline: `Compensation and global market trends for the ${capJob} sector`, time: '1d ago', tag: 'Market' },
+  ]
+}
+
+function getJobPrompts(job) {
+  const jobKey = resolveJobKey(job)
+  if (jobKey !== 'default') return JOB_PROMPTS[jobKey]
+  
+  return [
+    `Best practices for a ${job}?`,
+    `Help me prioritise my tasks`,
+    `Latest industry trends`,
+    `Draft an email to a stakeholder`
+  ]
 }
 
 // Render markdown-lite: **bold**, `code`, newlines
@@ -331,59 +381,176 @@ function renderText(text) {
   })
 }
 
-export default function AIChat({ profile }) {
+export default function AIChat({ profile, onNavigate }) {
   const job = profile?.job || 'default'
-  const jobKey = resolveJobKey(job)
-  const prompts = JOB_PROMPTS[jobKey]
-  const news = JOB_NEWS[jobKey]
+  const prompts = getJobPrompts(job)
+  const news = getJobNews(job)
+  const { notes, setNotes, events, setEvents } = useAppContext()
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1, role: 'leo',
-      text: `Hey ${profile?.name || 'there'}! 👋 I'm Leo, your AI work assistant. I'm here to help you with your ${job} work. Ask me anything — from quick questions to complex tasks.`
-    }
-  ])
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`leo_messages_${profile?.id}`)
+      if (saved) return JSON.parse(saved)
+    } catch (e) {}
+    return [
+      {
+        id: crypto.randomUUID(), role: 'leo',
+        text: `Hey ${profile?.name || 'there'}! 👋 I'm Leo, your AI work assistant. I'm powered by Gemini and here to help you with anything — questions, tasks, planning, and more. What can I do for you today?`
+      }
+    ]
+  })
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [isListening, setIsListening] = useState(false)
   const [activeTab, setActiveTab] = useState('chat')
+  const [copiedId, setCopiedId] = useState(null)
   const bottomRef = useRef(null)
+
+  useEffect(() => {
+    if (profile?.id) {
+      localStorage.setItem(`leo_messages_${profile.id}`, JSON.stringify(messages))
+    }
+  }, [messages, profile?.id])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping])
 
+  function clearChat() {
+    const initial = [{
+      id: crypto.randomUUID(), role: 'leo',
+      text: `Chat cleared! 🦁 I'm Leo, ready to help. What's on your mind, ${profile?.name || 'there'}?`
+    }]
+    setMessages(initial)
+    if (profile?.id) {
+      localStorage.setItem(`leo_messages_${profile.id}`, JSON.stringify(initial))
+    }
+  }
+
+  function copyMessage(text, id) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000)
+    })
+  }
+
+  function toggleListen() {
+    if (isListening) return;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Your browser does not support voice input.');
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+  }
+
   async function sendMessage(text) {
     const txt = (text || input).trim()
     if (!txt) return
     setInput('')
-    setMessages(m => [...m, { id: Date.now(), role: 'user', text: txt }])
+    
+    const newMessages = [...messages, { id: crypto.randomUUID(), role: 'user', text: txt }]
+    setMessages(newMessages)
     setIsTyping(true)
 
-    // Use real Gemini API if a key is configured
-    if (HAS_KEY) {
-      try {
-        const systemPrompt = `You are Leo, an intelligent AI work assistant. The user's name is ${profile?.name || 'there'} and their job is: ${job}. Give concise, direct, genuinely helpful answers. Use ** for bold text and • for bullet points (never use * for bullets). Keep responses focused and practical.`
-        const resp = await callGemini(`${systemPrompt}\n\nUser: ${txt}`)
-        setMessages(m => [...m, { id: Date.now() + 1, role: 'leo', text: resp }])
-        setIsTyping(false)
-        return
-      } catch (err) {
-        console.warn('Gemini API hit a limit or error. Falling back to local offline engine:', err.message)
-      }
-    }
+    try {
+      const now = new Date()
+      const dateContext = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      const timeContext = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+      
+      let systemPrompt = `You are Leo, a highly intelligent and friendly AI work assistant built into a productivity app. The current date is ${dateContext} and the time is ${timeContext}. The user's name is ${profile?.name || 'there'} and their job is: ${job}.
 
-    // Fallback to local engine if no API key or if API call failed
-    setTimeout(() => {
-      const resp = generateResponse(txt, job, jobKey)
-      setMessages(m => [...m, { id: Date.now() + 1, role: 'leo', text: resp }])
+Personality: warm, confident, knowledgeable, and concise. Never refuse to help. Use ** for bold text and • for bullet points (never use * for bullets). Provide thorough but focused answers — not too long, not too short. Always offer to dive deeper or create structured output (tables, lists) if it would help.
+
+You have tools to create notes and add/delete calendar events. Use them proactively when the user mentions tasks, events, or ideas worth saving. After using a tool, briefly confirm what you did.`
+      
+      if (profile?.accessibility) {
+        systemPrompt += ` The user has accessibility mode enabled. Use simple language, short paragraphs, clear headings, and avoid complex sentence structures.`
+      }
+
+      // We only send the history (excluding the first greeting, or keeping it as model)
+      const historyToSend = newMessages.slice(1).map(m => ({ role: m.role, text: m.text }))
+      if (historyToSend.length === 0) historyToSend.push({ role: 'user', text: txt }) // fallback if something weird
+
+      const resp = await callGemini(historyToSend, systemPrompt)
+      
+      if (resp.type === 'function') {
+        const call = resp.call;
+        let replyTxt = "Done! ✅";
+        if (call.name === 'create_note') {
+            const now = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            const newNote = {
+              id: crypto.randomUUID(),
+              title: call.args.title,
+              content: call.args.content,
+              color: 'color-purple',
+              tags: call.args.tags ? call.args.tags.split(',').map(t => t.trim()) : [],
+              date: now
+            };
+            setNotes(ns => [newNote, ...ns]);
+            replyTxt = `📝 Done! I've created a note titled **"${call.args.title}"** and saved it to your notes.`;
+        } else if (call.name === 'add_calendar_event') {
+            const newEvent = {
+              id: crypto.randomUUID(),
+              date: call.args.date,
+              time: call.args.time,
+              name: call.args.name,
+              desc: call.args.desc || '',
+              color: 0
+            };
+            setEvents(evs => [...evs, newEvent]);
+            replyTxt = `📅 Done! I've added **"${call.args.name}"** to your calendar on ${call.args.date} at ${call.args.time}.`;
+        } else if (call.name === 'delete_calendar_event') {
+            setEvents(evs => evs.filter(e => e.name.toLowerCase() !== call.args.name.toLowerCase()));
+            replyTxt = `🗑️ Done! I've removed **"${call.args.name}"** from your calendar.`;
+        } else if (call.name === 'start_focus_timer') {
+            replyTxt = `⏱️ Navigating you to the Focus Timer! I've set it up for **${call.args.duration} minutes**. Time to focus, ${profile?.name || 'there'}!`;
+            setTimeout(() => onNavigate?.('timer'), 800)
+        }
+        setMessages(m => [...m, { id: crypto.randomUUID(), role: 'leo', text: replyTxt }])
+      } else {
+        setMessages(m => [...m, { id: crypto.randomUUID(), role: 'leo', text: resp.text }])
+      }
       setIsTyping(false)
-    }, 900 + Math.random() * 700)
+      return
+    } catch (err) {
+      console.warn('Backend API Error:', err.message)
+      setMessages(m => [...m, { 
+        id: crypto.randomUUID(), 
+        role: 'leo', 
+        text: `⚠️ **Connection issue.** I couldn't reach the backend. Make sure the server is running on port 3001 and your API key is valid.\n\n*Error: ${err.message}*` 
+      }])
+      setIsTyping(false)
+    }
   }
 
   return (
     <div className="page anim-fade-in">
-      <h1 className="page-title">AI Assistant</h1>
-      <p className="page-subtitle">Tailored for <strong>{job}</strong> · Ask me anything</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <h1 className="page-title" style={{ marginBottom: 0 }}>AI Assistant</h1>
+        <button
+          className="btn btn-ghost btn-sm"
+          onClick={clearChat}
+          title="Clear conversation"
+          style={{ fontSize: 12, color: 'var(--text-muted)' }}
+        >
+          🗑 Clear Chat
+        </button>
+      </div>
+      <p className="page-subtitle">Powered by Gemini · Tailored for <strong>{job}</strong></p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
         {/* Chat panel */}
@@ -411,8 +578,24 @@ export default function AIChat({ profile }) {
                 {messages.map(m => (
                   <div key={m.id} className={`msg ${m.role} anim-fade-up`}>
                     <div className="msg-avatar" aria-hidden="true">{m.role === 'leo' ? '🦁' : (profile?.name?.[0] || '?')}</div>
-                    <div className="msg-bubble" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
-                      {m.role === 'leo' ? renderText(m.text) : m.text}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="msg-bubble" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
+                        {m.role === 'leo' ? renderText(m.text) : m.text}
+                      </div>
+                      {m.role === 'leo' && (
+                        <button
+                          onClick={() => copyMessage(m.text, m.id)}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            fontSize: 11, color: copiedId === m.id ? 'var(--accent-4)' : 'var(--text-muted)',
+                            padding: '2px 6px', marginTop: 4, borderRadius: 4,
+                            transition: 'color 0.2s'
+                          }}
+                          title="Copy message"
+                        >
+                          {copiedId === m.id ? '✓ Copied' : '⎘ Copy'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -433,6 +616,14 @@ export default function AIChat({ profile }) {
                 <div ref={bottomRef} />
               </div>
               <div className="chat-input-bar">
+                <button
+                  className={`btn btn-icon ${isListening ? 'btn-danger' : 'btn-ghost'}`}
+                  onClick={toggleListen}
+                  aria-label="Voice input"
+                  style={{ fontSize: 18, padding: '10px 12px' }}
+                >
+                  🎙
+                </button>
                 <input
                   className="chat-input"
                   placeholder={`Ask Leo about your ${job} work…`}
@@ -457,19 +648,31 @@ export default function AIChat({ profile }) {
           {activeTab === 'news' && (
             <div style={{ padding: 16, maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
               <div className="pill pill-purple" style={{ marginBottom: 14 }}>📡 Tailored for {job}</div>
-              {news.map((n, i) => (
-                <div key={i} className="news-card anim-fade-up" style={{ animationDelay: `${i * 0.07}s` }}>
-                  <div className="news-thumb" aria-hidden="true">{n.emoji}</div>
-                  <div className="news-content">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <span className="news-source">{n.source}</span>
-                      <span className="tag">{n.tag}</span>
+              {news.map((n, i) => {
+                // By searching for the job + the category/tag, we guarantee REAL news results 
+                // on Google News, rather than searching for our mockup headline which yields 0 results.
+                const searchQuery = encodeURIComponent(`${job} ${n.tag} news`)
+                return (
+                  <a 
+                    key={i} 
+                    href={`https://news.google.com/search?q=${searchQuery}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="news-card anim-fade-up" 
+                    style={{ animationDelay: `${i * 0.07}s`, textDecoration: 'none' }}
+                  >
+                    <div className="news-thumb" aria-hidden="true">{n.emoji}</div>
+                    <div className="news-content">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <span className="news-source" style={{ fontWeight: 800 }}>📰 {n.source}</span>
+                        <span className="tag">{n.tag}</span>
+                      </div>
+                      <div className="news-headline" style={{ color: 'var(--text-primary)' }}>{n.headline}</div>
+                      <div className="news-time" style={{ color: 'var(--text-muted)' }}>{n.time}</div>
                     </div>
-                    <div className="news-headline">{n.headline}</div>
-                    <div className="news-time">{n.time}</div>
-                  </div>
-                </div>
-              ))}
+                  </a>
+                )
+              })}
             </div>
           )}
         </div>

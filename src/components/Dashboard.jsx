@@ -1,10 +1,7 @@
 import { useState } from 'react'
+import { useAppContext } from '../AppContext'
 
-const UPCOMING = [
-  { name: 'Team Standup', time: '09:00', color: '#818cf8' },
-  { name: 'Product Review', time: '11:00', color: '#22d3ee' },
-  { name: 'Client Call', time: '14:30', color: '#f59e0b' },
-]
+const EVENT_COLORS_HEX = ['#818cf8', '#22d3ee', '#f59e0b', '#f43f5e', '#10b981']
 
 const JOB_TIPS = {
   developer: ['Use feature flags for safer deploys', 'Write tests before fixing bugs', 'Document APIs as you build them'],
@@ -31,10 +28,16 @@ const GREETING = () => {
 
 const QUOTES = [
   { text: "You always have to believe you can win.", author: "Max Verstappen" },
+  { text: "Whoever said that money doesn't buy happiness didn't know where to shop.", author: "Blair Waldorf" },
+  { text: "Destiny is for losers. It's just a stupid excuse to wait for things to happen instead of making them happen.", author: "Blair Waldorf" },
+  { text: "Fashion is the most powerful art there is. It shows the world who we are and who we'd like to be.", author: "Blair Waldorf" },
+  { text: "If you no longer go for a gap that exists, you are no longer a racing driver.", author: "Ayrton Senna" },
+  { text: "To achieve anything in this game, you must be prepare to dabble in the boundary of disaster.", author: "Stirling Moss" },
+  { text: "I am an artist. The track is my canvas, and the car is my brush.", author: "Graham Hill" },
   { text: "I try to write things that people can relate to.", author: "Tate McRae" },
   { text: "Every person in the team is a link in the chain.", author: "Toto Wolff" },
   { text: "I don't play the odds, I play the man.", author: "Harvey Specter" },
-  { text: "Life is this. I like this.", author: "Mike Ross" },
+  { text: "Life is this. I like this.", author: "Harvey Specter" },
   { text: "I didn't get to where I am by being afraid.", author: "Jessica Pearson" },
   { text: "I don't pay for suits. My suits are on the house or the house burns down.", author: "Thomas Shelby" },
   { text: "Stay hungry, stay foolish.", author: "Steve Jobs" },
@@ -45,17 +48,39 @@ const QUOTES = [
   { text: "When something is important enough, you do it even if the odds are not in your favor.", author: "Elon Musk" },
   { text: "Don't be afraid of failure. This is the way to succeed.", author: "LeBron James" },
   { text: "Imagination is more important than knowledge.", author: "Albert Einstein" },
+  { text: "Friends don't lie.", author: "Eleven" },
+  { text: "Mornings are for coffee and contemplation.", author: "Chief Hopper" },
+  { text: "Nobody normal ever accomplished anything meaningful in this world.", author: "Jonathan Byers" },
+  { text: "Always the babysitter. Always the goddamn babysitter!", author: "Steve Harrington" },
+  { text: "It's Fabergé Organics. Use the shampoo and conditioner, and when your hair's damp, not wet, okay? When it's damp, you do four puffs of the Farrah Fawcett spray.", author: "Steve Harrington" },
+  { text: "Yeah, it's me, don't cream your pants.", author: "Steve Harrington" },
 ]
 
 export default function Dashboard({ profile, onNavigate }) {
   const job = profile?.job || 'default'
-  const tips = JOB_TIPS[job] || JOB_TIPS.default
+  const { notes, events } = useAppContext()
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayEvents = events.filter(e => e.date === todayStr).sort((a, b) => a.time.localeCompare(b.time))
+  
+  const knownMatch = Object.keys(JOB_TIPS).find(k => job.toLowerCase().includes(k))
+  const isCustom = !knownMatch && job !== 'default'
+  
+  const baseTips = knownMatch ? JOB_TIPS[knownMatch] : JOB_TIPS.default
+  
+  const tips = isCustom ? [
+    `Stay updated with the latest tools and practices in your field as a ${job}.`,
+    `Network with other ${job} professionals to share insights.`,
+    `Take regular breaks to maintain focus on your complex tasks.`
+  ] : baseTips
   
   const today = new Date()
   const dayIndex = Math.floor(today.getTime() / 86400000)
   
-  const tip = tips[dayIndex % tips.length]
-  const quote = QUOTES[dayIndex % QUOTES.length]
+  const [quoteOffset, setQuoteOffset] = useState(0)
+  const [tipOffset, setTipOffset] = useState(0)
+
+  const tip = tips[(dayIndex + tipOffset) % tips.length]
+  const quote = QUOTES[(dayIndex + quoteOffset) % QUOTES.length]
 
   const dateStr = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -87,7 +112,10 @@ export default function Dashboard({ profile, onNavigate }) {
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 16 }}>
           <div style={{ fontSize: 32, lineHeight: 1 }}>💭</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--accent)', marginBottom: 6 }}>Quote of the Day</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--accent)' }}>Quote of the Day</div>
+              <button onClick={() => setQuoteOffset(o => o + 1)} className="btn-ghost" style={{ padding: '2px 6px', borderRadius: 4, fontSize: 13 }} title="Show next quote">🔄</button>
+            </div>
             <div style={{ fontSize: 16, fontStyle: 'italic', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: 8 }}>"{quote.text}"</div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>— {quote.author}</div>
           </div>
@@ -95,8 +123,11 @@ export default function Dashboard({ profile, onNavigate }) {
         
         <div style={{ display: 'flex', gap: 14, alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 16 }}>
           <div style={{ fontSize: 22, lineHeight: 1 }}>🦁</div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 2 }}>Leo's Tip ({job})</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+              <div style={{ fontWeight: 700, fontSize: 12 }}>Leo's Tip ({job})</div>
+              <button onClick={() => setTipOffset(o => o + 1)} className="btn-ghost" style={{ padding: '2px 6px', borderRadius: 4, fontSize: 12 }} title="Show next tip">🔄</button>
+            </div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{tip}</div>
           </div>
         </div>
@@ -105,10 +136,10 @@ export default function Dashboard({ profile, onNavigate }) {
       {/* Quick stats */}
       <div className="quick-stats" style={{ marginBottom: 24 }}>
         {[
-          { label: 'Focus sessions', value: '3', change: '+1 vs yesterday', positive: true },
-          { label: 'Notes taken', value: '7', change: '+2 today', positive: true },
-          { label: 'Meetings today', value: UPCOMING.length, change: '2 pending', positive: null },
-          { label: 'Files organised', value: '9', change: '2 untagged', positive: false },
+          { label: 'Notes saved', value: notes.length, change: 'across all topics', positive: true },
+          { label: 'Events today', value: todayEvents.length, change: todayEvents.length > 0 ? `next: ${todayEvents[0]?.time}` : 'all clear', positive: todayEvents.length > 0 ? null : true },
+          { label: 'Total events', value: events.length, change: 'in your calendar', positive: null },
+          { label: 'Ask Leo', value: '∞', change: 'always available', positive: true },
         ].map((s, i) => (
           <div key={i} className="quick-stat">
             <div className="qs-label">{s.label}</div>
@@ -162,22 +193,30 @@ export default function Dashboard({ profile, onNavigate }) {
               <div className="card-title">Today's Schedule</div>
               <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('schedule')}>See all →</button>
             </div>
-            {UPCOMING.map((ev, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 12px',
-                background: `${ev.color}12`,
-                borderRadius: 'var(--radius-md)',
-                border: `1px solid ${ev.color}44`,
-                marginBottom: 8,
-              }}>
-                <div style={{ width: 4, height: 36, borderRadius: 99, background: ev.color, flexShrink: 0, boxShadow: `0 0 8px ${ev.color}88` }} aria-hidden="true" />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, color: ev.color }}>{ev.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{ev.time}</div>
-                </div>
+            {todayEvents.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+                <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.5 }}>🎉</div>
+                No events today — enjoy the free time!
               </div>
-            ))}
+            ) : todayEvents.slice(0, 4).map((ev, i) => {
+              const color = EVENT_COLORS_HEX[ev.color % EVENT_COLORS_HEX.length]
+              return (
+                <div key={ev.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 12px',
+                  background: `${color}12`,
+                  borderRadius: 'var(--radius-md)',
+                  border: `1px solid ${color}44`,
+                  marginBottom: 8,
+                }}>
+                  <div style={{ width: 4, height: 36, borderRadius: 99, background: color, flexShrink: 0, boxShadow: `0 0 8px ${color}88` }} aria-hidden="true" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13, color }}>{ev.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{ev.time}{ev.desc ? ` · ${ev.desc.slice(0, 30)}` : ''}</div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -188,23 +227,29 @@ export default function Dashboard({ profile, onNavigate }) {
               <div className="card-title">Recent Notes</div>
               <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('notes')}>See all →</button>
             </div>
-            {[
-              { title: 'Q1 Goals', preview: 'Finalise product roadmap, review team OKRs…', color: 'var(--accent)', date: 'Mar 10' },
-              { title: 'Meeting Notes – 11 Mar', preview: 'Action items: follow up with design team…', color: 'var(--accent-2)', date: 'Mar 11' },
-              { title: 'Ideas Backlog', preview: 'AI-powered onboarding flow, dark mode…', color: 'var(--accent-3)', date: 'Mar 8' },
-            ].map((n, i) => (
-              <div key={i} style={{
-                display: 'flex', gap: 10, padding: '10px 0',
-                borderBottom: i < 2 ? '1px solid var(--border)' : undefined
-              }}>
-                <div style={{ width: 3, borderRadius: 99, background: n.color, flexShrink: 0 }} aria-hidden="true" />
-                <div style={{ flex: 1, paddingLeft: 8 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{n.title}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 }}>{n.preview}</div>
-                </div>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{n.date}</span>
+            {notes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+                <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.5 }}>📝</div>
+                No notes yet — create your first one!
               </div>
-            ))}
+            ) : notes.slice(0, 3).map((n, i) => {
+              const colorMap = { 'color-purple': 'var(--accent)', 'color-cyan': 'var(--accent-2)', 'color-amber': 'var(--accent-3)', 'color-green': 'var(--accent-4)' }
+              const color = colorMap[n.color] || 'var(--accent)'
+              return (
+                <div key={n.id} style={{
+                  display: 'flex', gap: 10, padding: '10px 0',
+                  borderBottom: i < 2 ? '1px solid var(--border)' : undefined,
+                  cursor: 'pointer'
+                }} onClick={() => onNavigate('notes')}>
+                  <div style={{ width: 3, borderRadius: 99, background: color, flexShrink: 0 }} aria-hidden="true" />
+                  <div style={{ flex: 1, paddingLeft: 8 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{n.title || 'Untitled'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 }}>{n.content?.slice(0, 60)}{n.content?.length > 60 ? '…' : ''}</div>
+                  </div>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{n.date}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
