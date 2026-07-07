@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   LayoutDashboard, Bot, Timer, CalendarDays, FileText,
   Mic, Folder, ChevronLeft, ChevronRight, Search,
-  Bell, ArrowLeftRight
+  Bell, ArrowLeftRight, Sun, Moon
 } from 'lucide-react'
 import Onboarding from './components/Onboarding'
 import Dashboard from './components/Dashboard'
@@ -38,6 +38,16 @@ function AppShell({ profiles, activeProfileId, setProfiles, setActiveProfileId }
   const [cmdOpen, setCmdOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const { notes, events } = useAppContext()
+
+  // ── Theme ────────────────────────────────────────────────
+  const [theme, setTheme] = useState(() =>
+    localStorage.getItem('leo_theme') || 'dark'
+  )
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('leo_theme', theme)
+  }, [theme])
+  function toggleTheme() { setTheme(t => t === 'dark' ? 'light' : 'dark') }
 
   // Global keyboard shortcut: Cmd/Ctrl+K → command palette
   useEffect(() => {
@@ -156,6 +166,16 @@ function AppShell({ profiles, activeProfileId, setProfiles, setActiveProfileId }
             {/* Notifications */}
             <button className="icon-btn notif-dot" aria-label="Notifications" title="Notifications">
               <Bell size={16} />
+            </button>
+
+            {/* Theme toggle */}
+            <button
+              className="icon-btn theme-toggle-btn"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
             {/* User badge */}

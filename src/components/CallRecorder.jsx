@@ -31,13 +31,27 @@ export default function CallRecorder({ profile }) {
 
   const [recording, setRecording] = useState(false)
   const [elapsed, setElapsed] = useState(0)
-  const [calls, setCalls] = useState(DEMO_SUMMARIES)
+  const [calls, setCalls] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`leo_calls_${profile?.id}`)
+      return saved ? JSON.parse(saved) : DEMO_SUMMARIES
+    } catch (e) {
+      return DEMO_SUMMARIES
+    }
+  })
   const [activeCall, setActiveCall] = useState(null)
   const [transcript, setTranscript] = useState([])
   const [titleDraft, setTitleDraft] = useState('')
   const timerRef = useRef(null)
   const recognitionRef = useRef(null)
   const isRecordingRef = useRef(false)
+
+  // Persist calls to localStorage
+  useEffect(() => {
+    if (profile?.id) {
+      localStorage.setItem(`leo_calls_${profile.id}`, JSON.stringify(calls))
+    }
+  }, [calls, profile?.id])
 
   function fmt(s) {
     const m = Math.floor(s / 60)

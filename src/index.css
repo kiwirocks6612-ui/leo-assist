@@ -1,6 +1,6 @@
-/* ─── Tokens ─────────────────────────────────────────────── */
-:root {
-  /* Surface depth layers — like Superhuman */
+/* ─── Tokens (Dark Mode — default) ───────────────────────── */
+:root,
+[data-theme="dark"] {
   --bg-primary:    #07080c;
   --bg-secondary:  #0f1117;
   --bg-card:       #14161d;
@@ -9,32 +9,63 @@
   --border: rgba(255,255,255,0.10);
   --border-bright: rgba(255,255,255,0.20);
 
-  /* Accent palette */
   --accent: #6366f1;
   --accent-light: #818cf8;
   --accent-glow: rgba(99,102,241,0.35);
   --accent-2: #22d3ee;
   --accent-3: #f59e0b;
   --accent-4: #10b981;
-  --accent-5: #f97066;  /* warm coral — more premium than harsh rose */
+  --accent-5: #f97066;
 
-  /* Text */
   --text-primary: #eef2f7;
   --text-secondary: #8b98b0;
   --text-muted: #4a5568;
 
-  /* Radii */
+  --shadow-card: 0 4px 32px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 40px var(--accent-glow);
+  --shadow-cmd:  0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08);
+
+  --topbar-bg: rgba(7,8,12,0.88);
+  --scrollbar-thumb: rgba(255,255,255,0.14);
+}
+
+/* ─── Tokens (Light Mode — Lindy-inspired warm) ───────────── */
+[data-theme="light"] {
+  --bg-primary:    #f5f4f0;
+  --bg-secondary:  #edecea;
+  --bg-card:       #ffffff;
+  --bg-card-hover: #f9f8f6;
+  --bg-glass: rgba(0,0,0,0.03);
+  --border: rgba(0,0,0,0.08);
+  --border-bright: rgba(0,0,0,0.16);
+
+  --accent: #5b5bd6;
+  --accent-light: #6366f1;
+  --accent-glow: rgba(91,91,214,0.20);
+  --accent-2: #0891b2;
+  --accent-3: #d97706;
+  --accent-4: #059669;
+  --accent-5: #e64d3d;
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a5068;
+  --text-muted: #8b93a7;
+
+  --shadow-card: 0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-glow: 0 0 24px var(--accent-glow);
+  --shadow-cmd:  0 24px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.08);
+
+  --topbar-bg: rgba(245,244,240,0.92);
+  --scrollbar-thumb: rgba(0,0,0,0.18);
+}
+
+/* ─── Shared Tokens ───────────────────────────────────────── */
+:root {
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-xl: 24px;
 
-  /* Shadows */
-  --shadow-card: 0 4px 32px rgba(0,0,0,0.5);
-  --shadow-glow: 0 0 40px var(--accent-glow);
-  --shadow-cmd:  0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08);
-
-  /* Fonts */
   --font-body: 'Inter', sans-serif;
   --font-heading: 'Space Grotesk', sans-serif;
   --font-display: 'Bricolage Grotesque', 'Space Grotesk', sans-serif;
@@ -42,6 +73,7 @@
   --nav-width: 72px;
   --sidebar-width: 260px;
 }
+
 
 /* ─── Reset ──────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -66,8 +98,8 @@ ul { list-style: none; }
 /* ─── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
 
 /* ─── Utility ────────────────────────────────────────────── */
 .sr-only {
@@ -203,7 +235,7 @@ ul { list-style: none; }
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 28px;
-  background: rgba(7,8,12,0.88);
+  background: var(--topbar-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border);
@@ -277,6 +309,26 @@ ul { list-style: none; }
   transition: all 0.2s;
 }
 .icon-btn:hover { color: var(--text-primary); border-color: var(--border-bright); background: var(--bg-card-hover); }
+
+/* Theme toggle — glows warm in dark, cool in light */
+.theme-toggle-btn:hover {
+  color: var(--accent-3) !important;
+  border-color: rgba(245,158,11,0.4) !important;
+  box-shadow: 0 0 12px rgba(245,158,11,0.2);
+}
+[data-theme="light"] .theme-toggle-btn:hover {
+  color: var(--accent) !important;
+  border-color: rgba(91,91,214,0.3) !important;
+  box-shadow: 0 0 12px rgba(91,91,214,0.15);
+}
+
+/* Smooth theme transition on the whole page */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+/* But NOT for animations / transforms */
+.anim-scale-in, .onboard-orb, .timer-ring-fg, .rec-dot { transition: none !important; }
+
 
 /* ─── Page ───────────────────────────────────────────────── */
 .page { padding: 28px; }

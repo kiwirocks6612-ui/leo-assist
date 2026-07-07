@@ -30,7 +30,9 @@ export function useReminders(events) {
       events.forEach(event => {
         if (!event.reminder || !event.date || !event.time) return
 
-        const eventDateTime = new Date(`${event.date}T${event.time}:00`)
+        const [yr, mo, dy] = event.date.split('-').map(Number)
+        const [hr, mn] = event.time.split(':').map(Number)
+        const eventDateTime = new Date(yr, mo - 1, dy, hr, mn, 0)
         const reminderTime = new Date(eventDateTime.getTime() - event.reminder * 60 * 1000)
 
         // Fire if we're within 60 seconds of the reminder time and haven't fired yet

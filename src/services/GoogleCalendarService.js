@@ -118,8 +118,18 @@ export async function createGoogleEvent(event) {
   if (!accessToken) throw new Error('Not authenticated')
 
   const startDateTime = `${event.date}T${event.time}:00`
-  // Default duration: 1 hour
-  const endDateTime = `${event.date}T${String(Number(event.time.split(':')[0]) + 1).padStart(2, '0')}:${event.time.split(':')[1]}:00`
+  
+  // Default duration: 1 hour. Calculate endDateTime robustly using Date object to handle day/midnight roll-overs.
+  const [yr, mo, dy] = event.date.split('-').map(Number)
+  const [hr, mn] = event.time.split(':').map(Number)
+  const startDateObj = new Date(yr, mo - 1, dy, hr, mn, 0)
+  const endDateObj = new Date(startDateObj.getTime() + 60 * 60 * 1000)
+  const endYear = endDateObj.getFullYear()
+  const endMonth = String(endDateObj.getMonth() + 1).padStart(2, '0')
+  const endDateVal = String(endDateObj.getDate()).padStart(2, '0')
+  const endHours = String(endDateObj.getHours()).padStart(2, '0')
+  const endMinutes = String(endDateObj.getMinutes()).padStart(2, '0')
+  const endDateTime = `${endYear}-${endMonth}-${endDateVal}T${endHours}:${endMinutes}:00`
 
   const body = {
     summary: event.name,
